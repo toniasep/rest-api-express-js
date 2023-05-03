@@ -1,4 +1,4 @@
-# rest-api-express-js
+# Simple REST API with Express JS
  
 ## Installation
 
