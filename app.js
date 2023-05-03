@@ -1,17 +1,16 @@
 // Import library yang diperlukan
-const express = require('express');
-const bodyParser = require('body-parser');
-const jwt = require('jsonwebtoken');
+const express = require('express'); // Import library express
+const bodyParser = require('body-parser'); // Import library body-parser
+const jwt = require('jsonwebtoken'); // Import library jsonwebtoken
 
-// !authorization 
-// const secretKey = 'secret-key'; // Kunci rahasia untuk JWT
+const secretKey = 'secret-key'; // Kunci rahasia untuk JWT
 
 
 // Inisialisasi aplikasi Express
 const app = express();
 
 // Set middleware untuk meng-handle request body dalam bentuk JSON
-app.use(bodyParser.json());
+app.use(bodyParser.json()); 
 
 // Data sederhana sebagai contoh
 let todos = [
@@ -23,8 +22,8 @@ let todos = [
 // Route untuk login
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
-    if (username === 'admin' && password === 'admin') {
-        const token = jwt.sign({ username }, secretKey);
+    if (username === 'toni' && password === 'toni') {
+        const token = jwt.sign({ username }, secretKey, { expiresIn: '1m' });
         res.json({ 
             success: true,
             message: 'Successfully logged in',
@@ -42,39 +41,34 @@ app.post('/login', (req, res) => {
 });
 
 // Middleware untuk memverifikasi token JWT (bearer token)
-//! authorization
-// const verifyToken = (req, res, next) => {
-//     const authHeader = req.headers.authorization;
-//     if (authHeader) {
-//         const token = authHeader.split(' ')[1];
-//         jwt.verify(token, secretKey, (err, user) => {
-//             if (err) {
-//                 return res.status(403).json({ 
-//                   success: false,
-//                   message: 'Invalid token',
-//                   status_code: 403,
-//                   data: null
-//               });
-//             }
-//             req.user = user;
-//             next();
-//         });
-//     } else {
-//         res.status(401).json({ 
-//             success: false,
-//             message: 'Unauthorized',
-//             status_code: 401,
-//             data: null
-//          });
-//     }
-// };
+const verifyToken = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+        const token = authHeader.split(' ')[1];
+        jwt.verify(token, secretKey, (err, user) => {
+            if (err) {
+                return res.status(403).json({ 
+                  success: false,
+                  message: 'Invalid token',
+                  status_code: 403,
+                  data: null
+              });
+            }
+            req.user = user;
+            next();
+        });
+    } else {
+        res.status(401).json({ 
+            success: false,
+            message: 'Unauthorized',
+            status_code: 401,
+            data: null
+         });
+    }
+};
 
 // Route untuk mengambil daftar todo
-
-// !authorization
-// app.get('/todos', verifyToken, (req, res) => {
-
-app.get('/todos', (req, res) => {
+app.get('/todos', verifyToken, (req, res) => {
   res.json({ 
         success: true,
         message: 'Successfully get todo list',
