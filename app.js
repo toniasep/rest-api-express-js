@@ -23,6 +23,7 @@ let todos = [
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
     if (username === 'toni' && password === 'toni') {
+      // Buat token JWT
         const token = jwt.sign({ username }, secretKey, { expiresIn: '1m' });
         res.json({ 
             success: true,
@@ -42,9 +43,12 @@ app.post('/login', (req, res) => {
 
 // Middleware untuk memverifikasi token JWT (bearer token)
 const verifyToken = (req, res, next) => {
+  // Ambil nilai token dari header
     const authHeader = req.headers.authorization;
     if (authHeader) {
+      // Bearer token
         const token = authHeader.split(' ')[1];
+        // Verifikasi token
         jwt.verify(token, secretKey, (err, user) => {
             if (err) {
                 return res.status(403).json({ 
@@ -80,7 +84,8 @@ app.get('/todos', verifyToken, (req, res) => {
 // Route untuk mengambil detail todo berdasarkan ID
 app.get('/todos/:id', (req, res) => {
   const id = parseInt(req.params.id);
-  const todo = todos.find(todo => todo.id === id);
+  // Cari todo berdasarkan ID
+  const todo = todos.find(todo => todo.id === id); 
   if (todo) {
     res.json({ 
         success: true,
@@ -100,10 +105,12 @@ app.get('/todos/:id', (req, res) => {
 
 // Route untuk menambahkan todo baru
 app.post('/todos', (req, res) => {
+  // Buat todo baru
   const newTodo = {
     id: todos.length + 1,
     text: req.body.text
   };
+  // Tambahkan todo baru ke array
   todos.push(newTodo);
   res.json({ 
         success: true,
@@ -115,9 +122,12 @@ app.post('/todos', (req, res) => {
 
 // Route untuk mengubah todo berdasarkan ID
 app.put('/todos/:id', (req, res) => {
+    // Ambil nilai ID
     const id = parseInt(req.params.id);
+    // Cari todo berdasarkan ID
     const todo = todos.find(todo => todo.id === id);
     if (todo) {
+      // Ubah nilai text todo
         todo.text = req.body.text;
         res.json({ 
           success: true,
@@ -134,7 +144,8 @@ app.put('/todos/:id', (req, res) => {
 // Route untuk menghapus todo berdasarkan ID
 app.delete('/todos/:id', (req, res) => {
   const id = parseInt(req.params.id);
-  todos = todos.filter(todo => todo.id !== id);
+  // Filter todo yang ID-nya tidak sama dengan ID yang dikirimkan
+  todos = todos.filter(todo => todo.id !== id); // Menghapus todo
   res.json({ 
         success: false,
         message: 'Todo deleted successfully',
