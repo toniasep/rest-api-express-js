@@ -1,10 +1,9 @@
 // Import library yang diperlukan
 const express = require('express'); // Import library express
 const bodyParser = require('body-parser'); // Import library body-parser
+
 const jwt = require('jsonwebtoken'); // Import library jsonwebtoken
-
-const secretKey = 'secret-key'; // Kunci rahasia untuk JWT
-
+const secretKey = 'rahasia-negara'; // Kunci rahasia untuk JWT
 
 // Inisialisasi aplikasi Express
 const app = express();
@@ -19,12 +18,13 @@ let todos = [
   { id: 3, text: 'Testing API' }
 ];
 
+//auth
 // Route untuk login
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
     if (username === 'toni' && password === 'toni') {
       // Buat token JWT
-        const token = jwt.sign({ username }, secretKey, { expiresIn: '1m' });
+        const token = jwt.sign({ username }, secretKey, { expiresIn: '60m' });
         res.json({ 
             success: true,
             message: 'Successfully logged in',
@@ -47,7 +47,9 @@ const verifyToken = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (authHeader) {
       // Bearer token
+        // console.log(authHeader);
         const token = authHeader.split(' ')[1];
+        // console.log(token);
         // Verifikasi token
         jwt.verify(token, secretKey, (err, user) => {
             if (err) {
@@ -71,6 +73,7 @@ const verifyToken = (req, res, next) => {
     }
 };
 
+
 // Route untuk mengambil daftar todo
 app.get('/todos', verifyToken, (req, res) => {
   res.json({ 
@@ -82,7 +85,7 @@ app.get('/todos', verifyToken, (req, res) => {
   });
 
 // Route untuk mengambil detail todo berdasarkan ID
-app.get('/todos/:id', (req, res) => {
+app.get('/todos/:id', verifyToken, (req, res) => {
   const id = parseInt(req.params.id);
   // Cari todo berdasarkan ID
   const todo = todos.find(todo => todo.id === id); 
@@ -104,7 +107,7 @@ app.get('/todos/:id', (req, res) => {
 });
 
 // Route untuk menambahkan todo baru
-app.post('/todos', (req, res) => {
+app.post('/todos', verifyToken, (req, res) => {
   // Buat todo baru
   const newTodo = {
     id: todos.length + 1,
@@ -121,7 +124,7 @@ app.post('/todos', (req, res) => {
 });
 
 // Route untuk mengubah todo berdasarkan ID
-app.put('/todos/:id', (req, res) => {
+app.put('/todos/:id', verifyToken, (req, res) => {
     // Ambil nilai ID
     const id = parseInt(req.params.id);
     // Cari todo berdasarkan ID
@@ -136,13 +139,19 @@ app.put('/todos/:id', (req, res) => {
           data: todo
         });
     } else {
-        res.status(404).json({ error: 'Todo not found' });
+        res.status(404).json(
+          { 
+            success: false,
+            message: 'Todo not found',
+            status_code: 404,
+            data: null
+        });
     }
 });
 
 
 // Route untuk menghapus todo berdasarkan ID
-app.delete('/todos/:id', (req, res) => {
+app.delete('/todos/:id', verifyToken, (req, res) => {
   const id = parseInt(req.params.id);
   // Filter todo yang ID-nya tidak sama dengan ID yang dikirimkan
   todos = todos.filter(todo => todo.id !== id); // Menghapus todo
